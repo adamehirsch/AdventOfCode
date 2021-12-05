@@ -106,8 +106,8 @@ func main() {
 		}
 	}
 
+	// CO2 generator rating
 	prefix = ""
-
 	for num := 0; num < lineLength; num++ {
 		prefix += findMostLeast(co2lines, num, "0", false)
 		co2lines = selectLines(co2lines, prefix)
