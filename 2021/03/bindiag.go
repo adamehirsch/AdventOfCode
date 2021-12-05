@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -22,8 +23,8 @@ func main() {
 	scanner := bufio.NewScanner(file)
 
 	var i int // index
-	var gamma []int
-	var epsilon []int
+	var gamma int
+	var epsilon int
 
 	fc := make(map[int]int) // frequency count accumulator
 
@@ -31,6 +32,7 @@ func main() {
 
 		s := strings.Split(scanner.Text(), "")
 
+		// for each index position on each line, count the 1
 		for m := 0; m < len(s); m++ {
 			n, _ := strconv.Atoi(s[m])
 			if n == 1 {
@@ -40,21 +42,25 @@ func main() {
 		i++
 	}
 
-	fmt.Printf("%v: %d\n", fc, i)
-
-	// walk the frequency accumulator
+	// walk the frequency counter
 	for c := 0; c < len(fc); c++ {
+
+		// if more than half of the digits at that index were 1, add 2 to the power of MATH
+		// ... the MATH part involved an off by one error around the length of the frequency counter
+
+		a := int(math.Pow(2, float64(len(fc)-c-1)))
+
 		if fc[c] > i/2 {
-			gamma = append(gamma, 1)
-			epsilon = append(epsilon, 0)
+			gamma += a
 		} else {
-			gamma = append(gamma, 0)
-			epsilon = append(epsilon, 1)
+			epsilon += a
 		}
 	}
 
-	fmt.Println(gamma)
-	fmt.Println(epsilon)
+	fmt.Printf("gamma:   %13b\n", gamma)
+	fmt.Printf("epsilon: %13b\n", epsilon)
+
+	fmt.Printf("%b * %b = %d", gamma, epsilon, gamma*epsilon)
 
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
