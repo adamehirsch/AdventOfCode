@@ -1,17 +1,43 @@
 package main
 
-import "fmt"
+import (
+	"bufio"
+	"fmt"
+	"log"
+	"os"
+	"strings"
+
+	"github.com/fatih/color"
+)
 
 type bingoBoard [][]string
 
-var winningNums []string
-var allBoards []bingoBoard
+func (bb *bingoBoard) printWinner(wn []string) {
+	red := color.New(color.FgRed).SprintFunc()
+	green := color.New(color.FgGreen).SprintFunc()
 
-func (bb *bingoBoard) isWinner() bool {
+	colorizedBB := bingoBoard{}
+
+	for _, v := range *bb {
+		var currRow []string
+
+		for _, val := range v {
+			v := red(val)
+			if Contains(wn, val) {
+				v = green(val)
+			}
+			currRow = append(currRow, v)
+		}
+		colorizedBB = append(colorizedBB, currRow)
+	}
+	fmt.Println(colorizedBB)
+}
+
+func (bb *bingoBoard) isWinner(wn []string) bool {
 
 	// check all the rows
 	for i := 0; i < len(*bb); i++ {
-		if rowWins((*bb)[i]) == true {
+		if rowWins((*bb)[i], wn) == true {
 			return true
 		}
 	}
@@ -22,7 +48,7 @@ func (bb *bingoBoard) isWinner() bool {
 		for j := 0; j < 5; j++ {
 			col = append(col, (*bb)[j][i])
 		}
-		if rowWins(col) == true {
+		if rowWins(col, wn) == true {
 			return true
 		}
 
@@ -30,9 +56,9 @@ func (bb *bingoBoard) isWinner() bool {
 	return false
 }
 
-func rowWins(row []string) bool {
+func rowWins(row []string, wn []string) bool {
 	for _, v := range row {
-		if Contains(winningNums, v) == false {
+		if Contains(wn, v) == false {
 			return false
 		}
 	}
@@ -48,46 +74,87 @@ func Contains(slice []string, val string) bool {
 	return false
 }
 
+func getBoards() []bingoBoard {
+	allBoards := []bingoBoard{}
+
+	boards, err := os.Open("input.txt")
+
+	if err != nil {
+		log.Fatalf("failed to open")
+
+	}
+	defer boards.Close()
+
+	boardScanner := bufio.NewScanner(boards)
+
+	var currBoard bingoBoard
+
+	for boardScanner.Scan() {
+		b := strings.Fields(boardScanner.Text())
+
+		// we've got a good row only if there are 5 entries
+		if len(b) == 5 {
+			currBoard = append(currBoard, b)
+		}
+
+		// if we've completed a 5x5 board, add it to the list
+		if len(currBoard) == 5 {
+			allBoards = append(allBoards, currBoard)
+			currBoard = bingoBoard{}
+		}
+
+	}
+
+	if err := boardScanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return allBoards
+}
+
+func getWinningNums() []string {
+	allNums := []string{}
+
+	nums, err := os.Open("numbers.txt")
+
+	if err != nil {
+		log.Fatalf("failed to open")
+
+	}
+	defer nums.Close()
+
+	numScanner := bufio.NewScanner(nums)
+
+	for numScanner.Scan() {
+		for _, v := range strings.Split(numScanner.Text(), ",") {
+			allNums = append(allNums, v)
+		}
+
+	}
+
+	if err := numScanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return allNums
+}
+
 func main() {
+	allBoards := getBoards()
+	allNums := getWinningNums()
 
-	sampleBoard := bingoBoard{
-		{"4", "95", "84", "51", "36"},
-		{"43", "40", "37", "23", "85"},
-		{"14", "90", "8", "59", "99"},
-		{"0", "88", "68", "93", "81"},
-		{"25", "6", "55", "19", "48"}}
+	var incNums []string
+	var winningBoard bingoBoard
 
-	winningNums = []string{"55", "8", "84", "37", "68"}
+winningNumbers:
+	for _, v := range allNums {
+		incNums = append(incNums, v)
+		for _, b := range allBoards {
+			if b.isWinner(incNums) {
+				winningBoard = b
 
-	fmt.Print(sampleBoard.isWinner())
-
-	// boards, err := os.Open("input.txt")
-
-	// if err != nil {
-	// 	log.Fatalf("failed to open")
-
-	// }
-	// defer boards.Close()
-
-	// boardScanner := bufio.NewScanner(boards)
-
-	// var currBoard bingoBoard
-
-	// for boardScanner.Scan() {
-	// 	b := strings.Fields(boardScanner.Text())
-
-	// 	if len(currBoard) == 5 {
-	// 		allBoards = append(allBoards, currBoard)
-
-	// 	}
-	// 	currBoard = append(currBoard, b)
-
-	// 	fmt.Println(b)
-	// 	fmt.Println(currBoard)
-	// }
-
-	// if err := boardScanner.Err(); err != nil {
-	// 	log.Fatal(err)
-	// }
-
+				break winningNumbers
+			}
+		}
+	}
+	fmt.Println(incNums)
+	winningBoard.printWinner(incNums)
 }
