@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/fatih/color"
@@ -12,25 +13,44 @@ import (
 
 type bingoBoard [][]string
 
-func (bb *bingoBoard) printWinner(wn []string) {
+func (bb bingoBoard) String() string {
+	out := ""
+	for _, row := range bb {
+		for _, v := range row {
+			out += fmt.Sprintf("%3s", v)
+		}
+		out += "\n"
+	}
+	return out
+}
+
+func (bb *bingoBoard) printWinner(wn []string) int {
+
 	red := color.New(color.FgRed).SprintFunc()
 	green := color.New(color.FgGreen).SprintFunc()
 
 	colorizedBB := bingoBoard{}
-
+	unmarkedTotal := 0
 	for _, v := range *bb {
 		var currRow []string
 
 		for _, val := range v {
-			v := red(val)
+			v := ""
 			if Contains(wn, val) {
-				v = green(val)
+				v = green(fmt.Sprintf("%3s", val))
+			} else {
+				// add any un-called number to the
+				n, _ := strconv.Atoi(val)
+				unmarkedTotal += n
+
+				v = red(fmt.Sprintf("%3s", val))
 			}
 			currRow = append(currRow, v)
 		}
 		colorizedBB = append(colorizedBB, currRow)
 	}
 	fmt.Println(colorizedBB)
+	return unmarkedTotal
 }
 
 func (bb *bingoBoard) isWinner(wn []string) bool {
@@ -143,6 +163,7 @@ func main() {
 
 	var incNums []string
 	var winningBoard bingoBoard
+	var winningNum int
 
 winningNumbers:
 	for _, v := range allNums {
@@ -150,11 +171,13 @@ winningNumbers:
 		for _, b := range allBoards {
 			if b.isWinner(incNums) {
 				winningBoard = b
-
+				winningNum, _ = strconv.Atoi(v)
 				break winningNumbers
 			}
 		}
 	}
 	fmt.Println(incNums)
-	winningBoard.printWinner(incNums)
+	winningTotal := winningBoard.printWinner(incNums)
+	fmt.Println(winningNum)
+	fmt.Printf("%d * %d = %d\n", winningTotal, winningNum, winningTotal*winningNum)
 }
