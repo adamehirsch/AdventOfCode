@@ -162,22 +162,44 @@ func main() {
 	allNums := getWinningNums()
 
 	var incNums []string
-	var winningBoard bingoBoard
-	var winningNum int
+	var firstWinningBoard bingoBoard
+	var firstWinningNum int
+	var firstWinningIncNums []string
 
-winningNumbers:
+	var lastWinningBoard bingoBoard
+	var lastWinningNum int
+	var lastWinningIncNums []string
+
 	for _, v := range allNums {
 		incNums = append(incNums, v)
-		for _, b := range allBoards {
+
+		for i := len(allBoards) - 1; i >= 0; i-- {
+			b := allBoards[i]
 			if b.isWinner(incNums) {
-				winningBoard = b
-				winningNum, _ = strconv.Atoi(v)
-				break winningNumbers
+				if len(firstWinningBoard) == 0 {
+					firstWinningBoard = b
+					firstWinningNum, _ = strconv.Atoi(v)
+					firstWinningIncNums = incNums
+				}
+
+				lastWinningBoard = b
+				lastWinningNum, _ = strconv.Atoi(v)
+				lastWinningIncNums = incNums
+
+				// drop boards that have already won out of the running
+				allBoards = append(allBoards[:i], allBoards[i+1:]...)
+
 			}
 		}
+
 	}
-	fmt.Println(incNums)
-	winningTotal := winningBoard.printWinner(incNums)
-	fmt.Println(winningNum)
-	fmt.Printf("%d * %d = %d\n", winningTotal, winningNum, winningTotal*winningNum)
+	color.Blue("First Winning Board")
+	winningTotal := firstWinningBoard.printWinner(firstWinningIncNums)
+	fmt.Println(firstWinningNum)
+	fmt.Printf("%d * %d = %d\n", winningTotal, firstWinningNum, winningTotal*firstWinningNum)
+
+	color.Yellow("Last Winnning Board")
+	lWinningTotal := lastWinningBoard.printWinner(lastWinningIncNums)
+	fmt.Println(lastWinningNum)
+	fmt.Printf("%d * %d = %d\n", lWinningTotal, lastWinningNum, lWinningTotal*lastWinningNum)
 }
