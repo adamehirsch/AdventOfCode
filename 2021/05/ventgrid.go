@@ -11,6 +11,12 @@ import (
 
 type grid [][]int
 
+func (g *grid) drawLine(l line) {
+	for bx := l.begin.X; bx <= l.end.X; bx++ {
+
+	}
+}
+
 type point struct {
 	X int
 	Y int
@@ -29,7 +35,14 @@ func (l line) String() string {
 	return fmt.Sprintf("%v -> %v", l.begin, l.end)
 }
 
-func getCoords(input string) []line {
+func (l line) isOrthogonal() bool {
+	if l.begin.X == l.end.X || l.begin.Y == l.end.Y {
+		return true
+	}
+	return false
+}
+
+func getLines(input string) []line {
 	file, err := os.Open(input)
 
 	if err != nil {
@@ -77,8 +90,18 @@ func getCoords(input string) []line {
 }
 
 func main() {
-	allLines := getCoords("input.txt")
-	for _, v := range allLines {
-		fmt.Println(v)
+	allLines := getLines("input.txt")
+
+	thisGrid := make(grid, 1000)
+	for i, _ := range thisGrid {
+		thisGrid[i] = make([]int, 1000)
 	}
+
+	for i, v := range allLines {
+		if v.isOrthogonal() == false {
+			continue
+		}
+
+	}
+
 }
