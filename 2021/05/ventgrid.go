@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -11,24 +12,69 @@ import (
 
 type grid [][]int
 
-func (g *grid) drawLine(l line) {
-	// is there a more elegant way to get these in ascending order? almost certainly
-	// do I care? probably not.
-
-	bx, ex := l.begin.X, l.end.X
-	if bx > ex {
-		ex, bx = l.begin.X, l.end.X
+func newGrid(size int) grid {
+	g := make(grid, size)
+	for i := 0; i < size; i++ {
+		g[i] = make([]int, size)
 	}
+	return g
+}
 
-	by, ey := l.begin.Y, l.end.Y
-	if by > ey {
-		ey, by = l.begin.Y, l.end.Y
-	}
-
-	for bx := bx; bx <= ex; bx++ {
-		for by := by; by <= ey; by++ {
-			fmt.Printf("bx: %d by: %d\n", bx, by)
+func (g *grid) countWinners() int {
+	winners := 0
+	for _, v := range *g {
+		for _, val := range v {
+			if val > 1 {
+				winners += 1
+			}
 		}
+	}
+	return winners
+}
+
+func (g *grid) drawLine(l line) {
+
+	if l.isOrthogonal() {
+		// is there a more elegant way to get these in ascending order? almost certainly
+		// do I care? probably not.
+
+		bx, ex := l.begin.X, l.end.X
+		if bx > ex {
+			ex, bx = l.begin.X, l.end.X
+		}
+
+		by, ey := l.begin.Y, l.end.Y
+		if by > ey {
+			ey, by = l.begin.Y, l.end.Y
+		}
+
+		for bx := bx; bx <= ex; bx++ {
+			for by := by; by <= ey; by++ {
+				(*g)[by][bx] += 1
+			}
+		}
+	} else {
+
+		bx, ex := l.begin.X, l.end.X
+		by, ey := l.begin.Y, l.end.Y
+
+		mx := 1
+		my := 1
+
+		if ex < bx {
+			mx = -1
+		}
+
+		if ey < by {
+			my = -1
+		}
+
+		// Since these lines are strictly diagonal, the range = run, so I can just
+		// make as many steps as the x-grid
+		for i := 0; i <= int(math.Abs(float64(bx-ex))); i++ {
+			(*g)[by+(i*my)][bx+(i*mx)] += 1
+		}
+
 	}
 }
 
@@ -73,7 +119,6 @@ func getLines(input string) []line {
 		var newLine line
 
 		b := strings.Split(scanner.Text(), " -> ")
-		fmt.Println(b)
 
 		if len(b) != 2 {
 			fmt.Println("THIS SHOULD NOT HAPPEN")
@@ -86,13 +131,13 @@ func getLines(input string) []line {
 
 			d, _ := strconv.Atoi(c[0])
 			e, _ := strconv.Atoi(c[1])
+
 			if i == 0 {
 				newLine.begin.X = d
 				newLine.begin.Y = e
 			} else if i == 1 {
 				newLine.end.X = d
 				newLine.end.Y = e
-				fmt.Println("\t", newLine.end)
 			}
 
 			if i == 1 {
@@ -107,18 +152,11 @@ func getLines(input string) []line {
 func main() {
 	allLines := getLines("input.txt")
 
-	thisGrid := make(grid, 1000)
-	for i, _ := range thisGrid {
-		thisGrid[i] = make([]int, 1000)
-	}
+	thisGrid := newGrid(1000)
 
 	for _, l := range allLines {
-		fmt.Println(l)
-		if l.isOrthogonal() == false {
-			continue
-		}
 		thisGrid.drawLine(l)
 
 	}
-
+	fmt.Println(thisGrid.countWinners())
 }
