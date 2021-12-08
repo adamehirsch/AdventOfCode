@@ -12,8 +12,23 @@ import (
 type grid [][]int
 
 func (g *grid) drawLine(l line) {
-	for bx := l.begin.X; bx <= l.end.X; bx++ {
+	// is there a more elegant way to get these in ascending order? almost certainly
+	// do I care? probably not.
 
+	bx, ex := l.begin.X, l.end.X
+	if bx > ex {
+		ex, bx = l.begin.X, l.end.X
+	}
+
+	by, ey := l.begin.Y, l.end.Y
+	if by > ey {
+		ey, by = l.begin.Y, l.end.Y
+	}
+
+	for bx := bx; bx <= ex; bx++ {
+		for by := by; by <= ey; by++ {
+			fmt.Printf("bx: %d by: %d\n", bx, by)
+		}
 	}
 }
 
@@ -97,10 +112,12 @@ func main() {
 		thisGrid[i] = make([]int, 1000)
 	}
 
-	for i, v := range allLines {
-		if v.isOrthogonal() == false {
+	for _, l := range allLines {
+		fmt.Println(l)
+		if l.isOrthogonal() == false {
 			continue
 		}
+		thisGrid.drawLine(l)
 
 	}
 
