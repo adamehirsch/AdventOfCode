@@ -75,7 +75,7 @@ func main() {
 	allFish := getFish("initial-fish.txt")
 	fg := fishingGround{fg: allFish, daycount: 0}
 
-	for i := 0; i < 80; i++ {
+	for i := 0; i < 256; i++ {
 		roundStart := time.Now()
 		fg.Sunrise()
 		if math.Mod(float64(i), float64(20)) == 0 {
