@@ -70,8 +70,8 @@ func main() {
 	// Fuel costs 1 per space
 	for j := GetMin(&allCrabs); j <= GetMax(&allCrabs); j++ {
 		for _, v := range allCrabs {
-			fuelCosts[j] += Abs(v, j)
-			// fuelCosts[j] += float64(CalcFuelCost(math.Abs(float64(v) - float64(j))
+			// fuelCosts[j] += Abs(v, j)
+			fuelCosts[j] += CalcFuelCost(Abs(v, j))
 		}
 	}
 
