@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"sort"
 	"strconv"
@@ -47,18 +46,36 @@ func GetMin(s *[]int) int {
 	return min
 }
 
+func CalcFuelCost(d int) int {
+	fc := 0
+	for i := 0; i <= d; i++ {
+		fc += i
+	}
+	return fc
+}
+
+func Abs(x, y int) int {
+	z := x - y
+	if z < 0 {
+		z = -z
+	}
+	return z
+}
+
 func main() {
 	allCrabs := getCrabs("crabs.txt")
 	sort.Ints(allCrabs)
-	fuelCosts := map[int]float64{}
+	fuelCosts := map[int]int{}
 
+	// Fuel costs 1 per space
 	for j := GetMin(&allCrabs); j <= GetMax(&allCrabs); j++ {
 		for _, v := range allCrabs {
-			fuelCosts[j] += math.Abs(float64(v) - float64(j))
+			fuelCosts[j] += Abs(v, j)
+			// fuelCosts[j] += float64(CalcFuelCost(math.Abs(float64(v) - float64(j))
 		}
 	}
 
-	var fc float64
+	var fc int
 	// find
 	for k, v := range fuelCosts {
 		if fc == 0 {
