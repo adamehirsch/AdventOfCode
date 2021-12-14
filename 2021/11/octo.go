@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -165,12 +166,14 @@ func (ob *OctoBoard) Flash() bool {
 	return flashed
 }
 
-func (ob *OctoBoard) Step() {
+func (ob *OctoBoard) Step() int {
 	ob.IncreaseEnergy()
 	for ob.Flash() {
 	}
+	fc := len(ob.flashed)
 	ob.ClearFlashes()
 	ob.stepcount++
+	return fc
 }
 
 func Contains(s []Point, p Point) bool {
@@ -187,8 +190,12 @@ func main() {
 		stepcount: 0,
 	}
 
-	for i := 0; i < 100; i++ {
-		OctoMap.Step()
+	f := 0
+	for i := 0; f < 100; i++ {
+		f = OctoMap.Step()
+		if math.Mod(float64(i), 500) == 0 {
+			fmt.Println(i, f)
+		}
 	}
 	fmt.Print(OctoMap)
 
