@@ -20,16 +20,16 @@ func main() {
 
 	scanner := bufio.NewScanner(file)
 
-	var a, b, r, i int
+	var a, b, totalDeeper, i int
 
 	for scanner.Scan() {
 		b, _ = strconv.Atoi(scanner.Text())
 
 		// skip the first line
 		if i > 0 && b > a {
-			r++
+			totalDeeper++
 		}
-		fmt.Printf("%d - %d: %d %t\n", a, b, r, b > a)
+		fmt.Printf("%d - %d: %d %t\n", a, b, totalDeeper, b > a)
 
 		a = b
 		i++

@@ -1,4 +1,4 @@
-package syntax
+package main
 
 import (
 	"fmt"
@@ -12,9 +12,9 @@ var closes = map[string]string{"]": "]", ")": ")", "{": "{", ">": ">"}
 
 type Line []string
 
-func (l *Line) String() string {
+func (l Line) String() string {
 	f := ""
-	for _, v := range *l {
+	for _, v := range l {
 		f += fmt.Sprintf("%s ", v)
 	}
 	return f
@@ -44,26 +44,25 @@ func getText(f string) [][]string {
 func findFirstProblem(t Line) (string, bool) {
 	counter := []string{}
 	fmt.Println(t)
-	for i := 0; i < len(t); i++ {
+	for i, v := range t {
 
-		v := t[i]
-		// fmt.Printf("%d: %s\n", i, v)
+		fmt.Printf("%d: %s\n", i, v)
 		nextClose, isOpen := opens[v]
 		if isOpen == true {
 			counter = append(counter, nextClose)
-			// fmt.Println("\t", counter)
+			fmt.Printf("\tAdding %s\n", counter)
 			continue
 		}
 
 		thisClose, isClose := closes[v]
 		if isClose == true {
-			// fmt.Printf("  found %s at %d: removing %s\n", thisClose, i, counter[len(counter)-1])
+			fmt.Printf("\tfound %s at %d: removing %s\n", thisClose, i, counter[len(counter)-1])
 			// if the closing character is the top on the stack
 			if thisClose == counter[len(counter)-1] {
 				counter = counter[:len(counter)-1]
 				continue
 			} else {
-				// fmt.Printf("  found %s at %d: WRONG %s\n", thisClose, i, counter[len(counter)-1])
+				fmt.Printf("\tfound %s at %d: WRONG %s\n", thisClose, i, counter[len(counter)-1])
 
 				return v, true
 			}
