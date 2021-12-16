@@ -8,14 +8,14 @@ import (
 )
 
 var opens = map[string]string{"[": "]", "(": ")", "{": "}", "<": ">"}
-var closes = map[string]string{"]": "]", ")": ")", "{": "{", ">": ">"}
+var closes = map[string]int{"]": 57, ")": 3, "}": 1197, ">": 25137}
 
 type Line []string
 
 func (l Line) String() string {
 	f := ""
 	for _, v := range l {
-		f += fmt.Sprintf("%s ", v)
+		f += fmt.Sprintf("%s", v)
 	}
 	return f
 }
@@ -41,48 +41,38 @@ func getText(f string) [][]string {
 
 }
 
-func findFirstProblem(t Line) (string, bool) {
+func findFirstProblem(t Line) (string, int) {
 	counter := []string{}
-	fmt.Println(t)
 	for i, v := range t {
-
-		fmt.Printf("%d: %s\n", i, v)
 		nextClose, isOpen := opens[v]
 		if isOpen == true {
 			counter = append(counter, nextClose)
-			fmt.Printf("\tAdding %s\n", counter)
 			continue
 		}
 
 		thisClose, isClose := closes[v]
 		if isClose == true {
-			fmt.Printf("\tfound %s at %d: removing %s\n", thisClose, i, counter[len(counter)-1])
 			// if the closing character is the top on the stack
-			if thisClose == counter[len(counter)-1] {
+			if v == counter[len(counter)-1] {
 				counter = counter[:len(counter)-1]
 				continue
 			} else {
-				fmt.Printf("\tfound %s at %d: WRONG %s\n", thisClose, i, counter[len(counter)-1])
-
-				return v, true
+				fmt.Printf("\tfound point value %d at %d: WRONG. Should be %s\n", thisClose, i, counter[len(counter)-1])
+				return v, thisClose
 			}
 		}
 	}
-	return "", false
+	return "", 0
 }
 
 func main() {
-	allChars := getText("sample.txt")
+	allChars := getText("input.txt")
+	allPoints := 0
 	for _, row := range allChars {
-		char, foundProblem := findFirstProblem(row)
-		if foundProblem {
-			for j := 0; j < len(row); j++ {
-				fmt.Printf("%s ", row[j])
-			}
-			fmt.Print("\n")
-			fmt.Println(char)
-		}
+		_, points := findFirstProblem(row)
+		allPoints += points
 
 	}
+	fmt.Println(allPoints)
 
 }
