@@ -43,7 +43,7 @@ func getText(f string) [][]string {
 
 func findFirstProblem(t Line) (string, int) {
 	counter := []string{}
-	for i, v := range t {
+	for _, v := range t {
 		nextClose, isOpen := opens[v]
 		if isOpen == true {
 			counter = append(counter, nextClose)
@@ -57,7 +57,7 @@ func findFirstProblem(t Line) (string, int) {
 				counter = counter[:len(counter)-1]
 				continue
 			} else {
-				fmt.Printf("\tfound point value %d at %d: WRONG. Should be %s\n", thisClose, i, counter[len(counter)-1])
+				// fmt.Printf("\tfound point value %d at %d: WRONG. Should be %s\n", thisClose, i, counter[len(counter)-1])
 				return v, thisClose
 			}
 		}
@@ -67,6 +67,7 @@ func findFirstProblem(t Line) (string, int) {
 
 func main() {
 	allChars := getText("input.txt")
+	fmt.Print(allChars)
 	allPoints := 0
 	for _, row := range allChars {
 		_, points := findFirstProblem(row)

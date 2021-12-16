@@ -12,6 +12,14 @@ type Point struct {
 	Y int
 }
 
+func Reverse(s []string) []string {
+	r := []string{}
+	for i := len(s) - 1; i >= 0; i-- {
+		r = append(r, s[i])
+	}
+	return r
+}
+
 func Contains(slice []string, val string) bool {
 	for _, item := range slice {
 		if item == val {
