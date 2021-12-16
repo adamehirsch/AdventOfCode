@@ -197,12 +197,21 @@ func day2111Func(cmd *cobra.Command, args []string) {
 		stepcount: 0,
 	}
 
+	for i := 0; i < 100; i++ {
+		OctoMap.Step()
+	}
+	fmt.Print("Part 1:\n", OctoMap)
+
+	OctoMap = OctoBoard{
+		board:     getMap("data/2111.txt"),
+		stepcount: 0,
+	}
+
 	// this time, look for the board where all 100 flashed
 	f := 0
 	for f < 100 {
 		f = OctoMap.Step()
-
 	}
-	fmt.Print(OctoMap)
+	fmt.Print("\n\nPart 2:\n", OctoMap)
 
 }
