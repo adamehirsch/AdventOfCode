@@ -31,7 +31,7 @@ type Line []string
 func (l Line) String() string {
 	f := ""
 	for _, v := range l {
-		f += fmt.Sprintf("%s", v)
+		f += v
 	}
 	return f
 }
@@ -71,7 +71,7 @@ func findFirstProblem(t Line) (string, int, []string) {
 			}
 		}
 	}
-	fmt.Println(t, counter)
+
 	return "", 0, counter
 }
 
