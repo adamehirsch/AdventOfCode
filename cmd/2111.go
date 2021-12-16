@@ -22,7 +22,7 @@ func init() {
 	rootCmd.AddCommand(day2111Cmd)
 }
 
-func getMap(f string) [][]int {
+func getOctoMap(f string) [][]int {
 	var dm [][]int
 
 	content, err := utils.Opener(f, true)
@@ -193,7 +193,7 @@ func Contains(s []Point, p Point) bool {
 
 func day2111Func(cmd *cobra.Command, args []string) {
 	OctoMap := OctoBoard{
-		board:     getMap("data/2111.txt"),
+		board:     getOctoMap("data/2111.txt"),
 		stepcount: 0,
 	}
 
@@ -203,7 +203,7 @@ func day2111Func(cmd *cobra.Command, args []string) {
 	fmt.Print("Part 1:\n", OctoMap)
 
 	OctoMap = OctoBoard{
-		board:     getMap("data/2111.txt"),
+		board:     getOctoMap("data/2111.txt"),
 		stepcount: 0,
 	}
 

@@ -7,6 +7,11 @@ import (
 	"strings"
 )
 
+type Point struct {
+	X int
+	Y int
+}
+
 func Contains(slice []string, val string) bool {
 	for _, item := range slice {
 		if item == val {
