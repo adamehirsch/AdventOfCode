@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"math"
 	"os"
 	"strconv"
 	"strings"
@@ -184,18 +183,18 @@ func Contains(s []Point, p Point) bool {
 	}
 	return false
 }
+
 func main() {
 	OctoMap := OctoBoard{
 		board:     getMap("input.txt"),
 		stepcount: 0,
 	}
 
+	// this time, look for the board where all 100 flashed
 	f := 0
-	for i := 0; f < 100; i++ {
+	for f < 100 {
 		f = OctoMap.Step()
-		if math.Mod(float64(i), 500) == 0 {
-			fmt.Println(i, f)
-		}
+
 	}
 	fmt.Print(OctoMap)
 
