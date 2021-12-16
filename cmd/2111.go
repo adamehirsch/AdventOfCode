@@ -3,23 +3,35 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"os"
 	"strconv"
 	"strings"
 
+	"github.com/adamehirsch/AdventOfCode/utils"
 	"github.com/fatih/color"
+	"github.com/spf13/cobra"
 )
+
+var day2111Cmd = &cobra.Command{
+	Use:                   "day2111",
+	Short:                 "2021 Advent of Code Day 11",
+	DisableFlagsInUseLine: true,
+	Run:                   day2111Func,
+}
+
+func init() {
+	rootCmd.AddCommand(day2111Cmd)
+}
 
 func getMap(f string) [][]int {
 	var dm [][]int
-	content, err := os.ReadFile(f)
+
+	content, err := utils.Opener(f, true)
 	if err != nil {
 		log.Fatal(err)
 	}
 	// trim trailing newline
-	line := strings.TrimSuffix(string(content), "\n")
 
-	for _, v := range strings.Split(line, "\n") {
+	for _, v := range strings.Split(content, "\n") {
 		var row []int
 
 		for _, char := range strings.Split(v, "") {
@@ -58,11 +70,6 @@ func (ob OctoBoard) String() string {
 			default:
 				rv += fmt.Sprintf("%d", o)
 			}
-			// if o == 0 {
-			// 	rv += yellow(fmt.Sprintf("%d ", o))
-			// } else {
-			// 	rv += fmt.Sprintf("%d ", o)
-			// }
 		}
 		rv += "\n"
 	}
@@ -151,7 +158,7 @@ func (ob *OctoBoard) Flash() bool {
 	for y := 0; y < len(ob.board); y++ {
 		for x := 0; x < len(ob.board[y]); x++ {
 			// any point greater than 9 that hasn't already flashed; flash
-			if ob.board[y][x] > 9 && Contains(ob.flashed, Point{X: x, Y: y}) == false {
+			if ob.board[y][x] > 9 && !Contains(ob.flashed, Point{X: x, Y: y}) {
 				// fmt.Printf("FLASHING: %d, %d\n", x, y)
 				flashed = true
 				// increase neighbors
@@ -184,9 +191,9 @@ func Contains(s []Point, p Point) bool {
 	return false
 }
 
-func main() {
+func day2111Func(cmd *cobra.Command, args []string) {
 	OctoMap := OctoBoard{
-		board:     getMap("input.txt"),
+		board:     getMap("data/2111.txt"),
 		stepcount: 0,
 	}
 
