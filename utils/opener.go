@@ -5,11 +5,21 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode"
 )
 
 type Point struct {
 	X int
 	Y int
+}
+
+func IsUpper(s string) bool {
+	for _, r := range s {
+		if !unicode.IsUpper(r) && unicode.IsLetter(r) {
+			return false
+		}
+	}
+	return true
 }
 
 func Reverse(s []string) []string {

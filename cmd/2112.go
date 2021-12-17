@@ -23,6 +23,7 @@ func init() {
 // Node element to keep element and next node together
 type Node struct {
 	value string
+	isBig bool
 }
 
 // Graph is the structure that contains nodes and edges
@@ -41,7 +42,7 @@ func NewGraph() *Graph {
 
 // AddNode inserts a new node in the graph
 func (g *Graph) AddNode(el string) *Node {
-	n := &Node{el}
+	n := &Node{value: el, isBig: utils.IsUpper(el)}
 	g.nodes = append(g.nodes, n)
 	return n
 }
@@ -50,6 +51,21 @@ func (g *Graph) AddNode(el string) *Node {
 func (g *Graph) AddEdge(n1, n2 *Node) {
 	g.edges[*n1] = append(g.edges[*n1], n2)
 	g.edges[*n2] = append(g.edges[*n2], n1)
+}
+
+func (g *Graph) RemoveNode(el string) {
+	n, exists, index := NodesContains(el, g.nodes)
+
+	if exists {
+		g.nodes = append(g.nodes[:index], g.nodes[index+1:]...)
+	}
+	delete(g.edges, *n)
+	for k, v := range g.edges {
+		_, exists, index := NodesContains(el, v)
+		if exists {
+			g.edges[k] = append(g.edges[k][:index], g.edges[k][index+1:]...)
+		}
+	}
 }
 
 // String returns a string reperesentation of the node
@@ -73,13 +89,13 @@ func (g Graph) String() string {
 	return sb.String()
 }
 
-func (g *Graph) Contains(s string) (*Node, bool) {
-	for _, n := range g.nodes {
-		if n.value == s {
-			return n, true
+func NodesContains(s string, n []*Node) (*Node, bool, int) {
+	for i, no := range n {
+		if no.value == s {
+			return no, true, i
 		}
 	}
-	return nil, false
+	return nil, false, -1
 }
 
 func getCaves(f string) *Graph {
@@ -95,7 +111,7 @@ func getCaves(f string) *Graph {
 		nodenames := strings.Split(line, "-")
 		nodes := []*Node{}
 		for _, n := range nodenames {
-			node, exists := g.Contains(n)
+			node, exists, _ := NodesContains(n, g.nodes)
 			if !exists {
 				node = g.AddNode(n)
 			}
