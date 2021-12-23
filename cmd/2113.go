@@ -30,15 +30,18 @@ func (fi FoldInstruction) String() string {
 	return fmt.Sprintf("{ axis: %s, line: %d }", fi.axis, fi.line)
 }
 
-func getCoordsAndFolds(f string) ([]Point, []FoldInstruction) {
-	file, err := utils.Opener("data/2113-sample.txt", true)
+func getCoordsAndFolds(f string) ([]Point, []FoldInstruction, int, int) {
+	file, err := utils.Opener(f, true)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	points := []Point{}
+	Points := []Point{}
 	folds := []FoldInstruction{}
+
+	maxX := 0
+	maxY := 0
 
 	for _, v := range strings.Split(file, "\n") {
 		s := strings.Split(v, ",")
@@ -46,8 +49,15 @@ func getCoordsAndFolds(f string) ([]Point, []FoldInstruction) {
 		if len(s) == 2 {
 			x, _ := strconv.Atoi(s[0])
 			y, _ := strconv.Atoi(s[1])
+			if x > maxX {
+				maxX = x
+			}
 
-			points = append(points, Point{X: x, Y: y})
+			if y > maxY {
+				maxY = y
+			}
+
+			Points = append(Points, Point{X: x, Y: y})
 		} else if strings.HasPrefix(v, "fold along") {
 			s = strings.Split(v, "=")
 			l, _ := strconv.Atoi(s[1])
@@ -55,10 +65,110 @@ func getCoordsAndFolds(f string) ([]Point, []FoldInstruction) {
 			folds = append(folds, FoldInstruction{axis: ax, line: l})
 		}
 	}
-	return points, folds
+	return Points, folds, maxX, maxY
+}
+
+func CreateGrid(x, y int) grid {
+	g := make(grid, y+1)
+	for f := 0; f <= y; f++ {
+		g[f] = make([]int, x+1)
+	}
+	return g
+}
+
+func PlotPoint(g grid, p Point) {
+	// all slices are pointer objects, so you don't need to pointer to them
+	g[p.Y][p.X] = 1
+}
+
+func PrintGrid(g grid) {
+	fmt.Printf("X: %d, Y: %d\n", len(g[0]), len(g))
+	for y := 0; y < len(g); y++ {
+		for x := 0; x < len(g[y]); x++ {
+			v := ""
+			if g[y][x] > 0 {
+				v = "#"
+			} else {
+				v = "."
+			}
+			fmt.Printf("%2s", v)
+		}
+		fmt.Print("\n")
+	}
+}
+
+func (g grid) X() int {
+	return len(g[0]) - 1
+}
+func (g grid) Y() int {
+	return len(g) - 1
+}
+func FoldGrid(og grid, fi FoldInstruction) grid {
+	var ng grid
+	// the folded line itself disappears
+
+	if fi.axis == "x" {
+		ng = CreateGrid(og.X()-(fi.line+1), og.Y())
+
+	} else {
+		ng = CreateGrid(og.X(), (og.Y() - (fi.line + 1)))
+	}
+
+	fmt.Printf("NG: %d, %d\n", ng.X(), ng.Y())
+	for y, row := range og {
+		for x, v := range row {
+			if v > 0 {
+				if y <= ng.Y() && x <= ng.X() {
+					// points on the new grid that simply are identical to those on the OG
+					ng[y][x] = v
+				} else if y > fi.line && fi.axis == "y" {
+					fmt.Println(x, y)
+
+					// this Y point exists on og but not on ng
+					distanceFromFold := y - fi.line
+					fmt.Println("\t", x, (fi.line)-distanceFromFold)
+					ng[(fi.line)-distanceFromFold][x] = v
+				} else if x > fi.line && fi.axis == "x" {
+					fmt.Println(x, y)
+
+					// this X point exists on og but not on ng
+					distanceFromFold := x - fi.line
+					ng[y][(fi.line)-distanceFromFold] = v
+				}
+			}
+		}
+	}
+
+	return ng
+}
+
+func CountPoints(g grid) int {
+	a := 0
+	for _, row := range g {
+		for _, v := range row {
+			if v > 0 {
+				a = a + 1
+			}
+		}
+	}
+	return a
 }
 
 func day2113Func(cmd *cobra.Command, args []string) {
-	points, folds := getCoordsAndFolds("data/2113-sample.txt")
-	fmt.Println(points, folds)
+	points, folds, maxX, maxY := getCoordsAndFolds("data/2113.txt")
+
+	grid := CreateGrid(maxX, maxY)
+
+	for _, Point := range points {
+		PlotPoint(grid, Point)
+	}
+
+	grid = FoldGrid(grid, folds[0])
+	// for _, f := range folds {
+	// 	grid = FoldGrid(grid, f)
+	// 	// fmt.Println(grid.X(), grid.Y())
+	// }
+
+	// PrintGrid(grid)
+	fmt.Println(CountPoints(grid))
 }
