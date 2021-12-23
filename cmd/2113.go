@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/adamehirsch/AdventOfCode/utils"
+	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 )
 
@@ -49,6 +50,7 @@ func getCoordsAndFolds(f string) ([]Point, []FoldInstruction, int, int) {
 		if len(s) == 2 {
 			x, _ := strconv.Atoi(s[0])
 			y, _ := strconv.Atoi(s[1])
+
 			if x > maxX {
 				maxX = x
 			}
@@ -69,6 +71,8 @@ func getCoordsAndFolds(f string) ([]Point, []FoldInstruction, int, int) {
 }
 
 func CreateGrid(x, y int) grid {
+	fmt.Printf("MAKING X: %d Y: %d\n", x, y)
+	// arguments are MaxPosition rather than length
 	g := make(grid, y+1)
 	for f := 0; f <= y; f++ {
 		g[f] = make([]int, x+1)
@@ -82,12 +86,14 @@ func PlotPoint(g grid, p Point) {
 }
 
 func PrintGrid(g grid) {
-	fmt.Printf("X: %d, Y: %d\n", len(g[0]), len(g))
+	red := color.New(color.FgYellow).SprintFunc()
+
+	fmt.Printf("PrintGrid: X: %d, Y: %d\n", g.MaxPosX(), g.MaxPosY())
 	for y := 0; y < len(g); y++ {
 		for x := 0; x < len(g[y]); x++ {
 			v := ""
 			if g[y][x] > 0 {
-				v = "#"
+				v = red(fmt.Sprintf("%2s", "#"))
 			} else {
 				v = "."
 			}
@@ -97,40 +103,41 @@ func PrintGrid(g grid) {
 	}
 }
 
-func (g grid) X() int {
+func (g grid) MaxPosX() int {
 	return len(g[0]) - 1
 }
-func (g grid) Y() int {
+
+func (g grid) MaxPosY() int {
 	return len(g) - 1
 }
+
 func FoldGrid(og grid, fi FoldInstruction) grid {
 	var ng grid
-	// the folded line itself disappears
+	fmt.Println("FOLDING: ", fi)
 
 	if fi.axis == "x" {
-		ng = CreateGrid(og.X()-(fi.line+1), og.Y())
+		// ng = CreateGrid(og.MaxPosX()-(fi.line+1), og.MaxPosY())
+		ng = CreateGrid(fi.line, og.MaxPosY())
 
 	} else {
-		ng = CreateGrid(og.X(), (og.Y() - (fi.line + 1)))
+		fmt.Println("FOO: ", og.MaxPosY(), fi.line)
+		// ng = CreateGrid(og.MaxPosX(), og.MaxPosY()-(fi.line+1))
+		ng = CreateGrid(og.MaxPosX(), fi.line)
 	}
 
-	fmt.Printf("NG: %d, %d\n", ng.X(), ng.Y())
 	for y, row := range og {
 		for x, v := range row {
 			if v > 0 {
-				if y <= ng.Y() && x <= ng.X() {
+				if y <= ng.MaxPosY() && x <= ng.MaxPosX() {
 					// points on the new grid that simply are identical to those on the OG
 					ng[y][x] = v
 				} else if y > fi.line && fi.axis == "y" {
-					fmt.Println(x, y)
-
 					// this Y point exists on og but not on ng
 					distanceFromFold := y - fi.line
-					fmt.Println("\t", x, (fi.line)-distanceFromFold)
+					// fmt.Printf("y: %d - %d = %d\n", fi.line, distanceFromFold, fi.line-distanceFromFold)
 					ng[(fi.line)-distanceFromFold][x] = v
-				} else if x > fi.line && fi.axis == "x" {
-					fmt.Println(x, y)
 
+				} else if x > fi.line && fi.axis == "x" {
 					// this X point exists on og but not on ng
 					distanceFromFold := x - fi.line
 					ng[y][(fi.line)-distanceFromFold] = v
@@ -158,17 +165,19 @@ func day2113Func(cmd *cobra.Command, args []string) {
 	points, folds, maxX, maxY := getCoordsAndFolds("data/2113.txt")
 
 	grid := CreateGrid(maxX, maxY)
-
+	// PrintGrid(grid)
 	for _, Point := range points {
 		PlotPoint(grid, Point)
 	}
-
-	grid = FoldGrid(grid, folds[0])
-	// for _, f := range folds {
-	// 	grid = FoldGrid(grid, f)
-	// 	// fmt.Println(grid.X(), grid.Y())
-	// }
-
 	// PrintGrid(grid)
-	fmt.Println(CountPoints(grid))
+
+	for i, f := range folds {
+		grid = FoldGrid(grid, f)
+		fmt.Printf("Done: [%d] X: %d, Y, %d \n===\n", i, grid.MaxPosX(), grid.MaxPosY())
+		// PrintGrid(grid)
+
+	}
+
+	PrintGrid(grid)
+	// fmt.Println(CountPoints(grid))
 }
