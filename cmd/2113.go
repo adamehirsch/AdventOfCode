@@ -120,7 +120,6 @@ func FoldGrid(og grid, fi FoldInstruction) grid {
 		ng = CreateGrid(fi.line, og.MaxPosY())
 
 	} else {
-		fmt.Println("FOO: ", og.MaxPosY(), fi.line)
 		// ng = CreateGrid(og.MaxPosX(), og.MaxPosY()-(fi.line+1))
 		ng = CreateGrid(og.MaxPosX(), fi.line)
 	}
@@ -165,16 +164,13 @@ func day2113Func(cmd *cobra.Command, args []string) {
 	points, folds, maxX, maxY := getCoordsAndFolds("data/2113.txt")
 
 	grid := CreateGrid(maxX, maxY)
-	// PrintGrid(grid)
 	for _, Point := range points {
 		PlotPoint(grid, Point)
 	}
-	// PrintGrid(grid)
 
-	for i, f := range folds {
+	for _, f := range folds {
 		grid = FoldGrid(grid, f)
-		fmt.Printf("Done: [%d] X: %d, Y, %d \n===\n", i, grid.MaxPosX(), grid.MaxPosY())
-		// PrintGrid(grid)
+		fmt.Println("Points: ", CountPoints(grid))
 
 	}
 
