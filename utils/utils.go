@@ -33,9 +33,9 @@ func (gm GridMap) String() string {
 	for y, row := range gm {
 		for x := 0; x < len(row); x++ {
 			if gm[y][x] == math.MaxInt {
-				sb += color.GreenString(fmt.Sprintf("%4s", "+"))
+				sb += color.GreenString(fmt.Sprintf("%5s", "+"))
 			} else {
-				sb += fmt.Sprintf("%4d", gm[y][x])
+				sb += fmt.Sprintf("%5d", gm[y][x])
 			}
 		}
 		sb += "\n"
@@ -47,9 +47,9 @@ func (gm *GridMap) PrintWinningPath(wp []Point) {
 	for y, row := range *gm {
 		for x := 0; x < len(row); x++ {
 			if ContainsPoint(wp, Point{X: x, Y: y}) {
-				green("%3d*", (*gm)[y][x])
+				green("%2d*", (*gm)[y][x])
 			} else {
-				fmt.Printf("%4d", (*gm)[y][x])
+				fmt.Printf("%3d", (*gm)[y][x])
 			}
 		}
 		fmt.Print("\n")

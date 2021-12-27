@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"sort"
+	"time"
 
 	"github.com/adamehirsch/AdventOfCode/utils"
 	"github.com/spf13/cobra"
@@ -33,24 +34,57 @@ func MakePathMap(xMax, yMax int) PathMap {
 	return pm
 }
 
+func FiveMap(origMap utils.GridMap) (utils.GridMap, utils.GridMap, PathMap) {
+
+	origXmax := len(origMap[0]) - 1
+	origYmax := len(origMap) - 1
+
+	Xmax := (5 * len(origMap[0])) - 1
+	Ymax := (5 * (len(origMap))) - 1
+
+	newMap := utils.MakeGridMap(Xmax, Ymax, math.MaxInt)
+
+	for y := 0; y <= Ymax; y++ {
+		for x := 0; x <= Xmax; x++ {
+			// figure out the coordinates in the "original" sector
+			iy := math.Mod(float64(y), float64(origYmax+1))
+			ix := math.Mod(float64(x), float64(origXmax+1))
+
+			baseValue := origMap[int(iy)][int(ix)]
+
+			// we are turning Golang's insistence on flooring any int/int to our advantage
+			lateralDistance := x / (origXmax + 1)
+			verticalDistance := y / (origYmax + 1)
+
+			// set the value with the modified value from the base map
+			newMap[y][x] = NumWrap(baseValue, lateralDistance+verticalDistance)
+
+		}
+	}
+
+	costMap := utils.MakeGridMap(Xmax, Ymax, math.MaxInt)
+	// the cost of the starting point is 0
+	costMap[0][0] = 0
+	bestMap := MakePathMap(Xmax, Ymax)
+	bestMap[0][0] = append(bestMap[0][0], utils.Point{X: 0, Y: 0})
+	return newMap, costMap, bestMap
+
+}
+
+func NumWrap(i, m int) int {
+	z := i + m
+	for z > 9 {
+		z -= 9
+	}
+	return z
+}
+
 func Dijkstra(m, costMap *utils.GridMap, bestMap *PathMap, finish utils.Point, seen *[]utils.Point, toCheck *[]utils.Point) {
 	// pull the working point off the toCheck list
 	workingPoint := (*toCheck)[0]
-	// // the current best path to the working point
-	// wp_path := (*bestMap)[workingPoint.Y][workingPoint.X]
-
-	// // if we've
-	// if wp_path[len(wp_path)-1].X != workingPoint.X || wp_path[len(wp_path)-1].Y != workingPoint.Y {
-	// 	fmt.Println("1: ADDING ", wp_path, workingPoint)
-	// 	(*bestMap)[workingPoint.Y][workingPoint.X] = append(wp_path, workingPoint)
-	// }
 
 	startCost := (*costMap).PointValue(workingPoint)
 	startPath := (*bestMap)[workingPoint.Y][workingPoint.X]
-
-	// fmt.Printf("WP: %v BP: %v\n", workingPoint, startPath)
-	// fmt.Printf("1,2 bestPath: %v\n", (*bestMap)[2][1])
-	// fmt.Printf("0,3 bestPath: %v\n", (*bestMap)[3][0])
 
 	// Mark this origin point Seen
 	if !utils.ContainsPoint(*seen, workingPoint) {
@@ -62,11 +96,7 @@ func Dijkstra(m, costMap *utils.GridMap, bestMap *PathMap, finish utils.Point, s
 
 	for _, neighbor := range utils.FourNeighbors(*m, workingPoint.X, workingPoint.Y) {
 
-		// fmt.Printf("  NEIGHBORS: wp %v -> %v\n", workingPoint, neighbor)
-
 		if !utils.ContainsPoint(*seen, neighbor) {
-
-			// fmt.Printf("  !SEEN: wp %v -> %v\n", workingPoint, neighbor)
 
 			if !utils.ContainsPoint(*toCheck, neighbor) {
 				// for any of the neighbors we haven't seen, let's check them
@@ -83,11 +113,7 @@ func Dijkstra(m, costMap *utils.GridMap, bestMap *PathMap, finish utils.Point, s
 				newPath := append(nc, startPath...)
 
 				(*bestMap)[neighbor.Y][neighbor.X] = append(newPath, utils.Point{X: neighbor.X, Y: neighbor.Y})
-				//  = newPath
 
-				// fmt.Printf("     AFTER %v %v\n", neighbor, (*bestMap)[neighbor.Y][neighbor.X])
-				// fmt.Printf("     1,2 bestPath: %v\n", (*bestMap)[2][1])
-				// fmt.Printf("     0,3 bestPath: %v\n", (*bestMap)[3][0])
 			}
 
 		}
@@ -123,4 +149,24 @@ func day2115Func(cmd *cobra.Command, args []string) {
 	caveMap.PrintWinningPath(bestMap[Ymax][Xmax])
 
 	fmt.Printf("Part 1: Total danger at destination: %d\n", costMap[Ymax][Xmax])
+
+	bigMap, bigCostMap, bigPathMap := FiveMap(caveMap)
+
+	bigPoints := []utils.Point{}
+	bigAgenda := []utils.Point{{X: 0, Y: 0}}
+
+	counter := 0
+
+	for len(bigAgenda) > 0 {
+		start := time.Now()
+		Dijkstra(&bigMap, &bigCostMap, &bigPathMap, utils.Point{X: len(bigMap[0]) - 1, Y: len(bigMap) - 1}, &bigPoints, &bigAgenda)
+		if math.Mod(float64(counter), float64(1000)) == 0 {
+			fmt.Println(counter, time.Since(start))
+		}
+		counter++
+	}
+
+	bigMap.PrintWinningPath(bigPathMap[len(bigMap[0])-1][len(bigMap)-1])
+
+	fmt.Printf("Part 2: Total danger at destination: %d\n", bigCostMap[len(bigCostMap[0])-1][len(bigCostMap)-1])
 }
