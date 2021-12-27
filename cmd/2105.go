@@ -92,18 +92,9 @@ func (g *grid) drawLine(l line, diag bool) {
 	}
 }
 
-type point struct {
-	X int
-	Y int
-}
-
-func (p point) String() string {
-	return fmt.Sprintf("(X: %d, Y: %d)", p.X, p.Y)
-}
-
 type line struct {
-	begin point
-	end   point
+	begin utils.Point
+	end   utils.Point
 }
 
 func (l line) String() string {
@@ -137,7 +128,7 @@ func getLines(input string) []line {
 		}
 
 		for i, v := range b {
-			// first point, then second point
+			// first utils.Point, then second utils.Point
 			c := strings.Split(v, ",")
 
 			d, _ := strconv.Atoi(c[0])

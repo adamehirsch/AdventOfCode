@@ -31,14 +31,14 @@ func (fi FoldInstruction) String() string {
 	return fmt.Sprintf("{ axis: %s, line: %d }", fi.axis, fi.line)
 }
 
-func getCoordsAndFolds(f string) ([]Point, []FoldInstruction, int, int) {
+func getCoordsAndFolds(f string) ([]utils.Point, []FoldInstruction, int, int) {
 	file, err := utils.Opener(f, true)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 
-	Points := []Point{}
+	Points := []utils.Point{}
 	folds := []FoldInstruction{}
 
 	maxX := 0
@@ -59,7 +59,7 @@ func getCoordsAndFolds(f string) ([]Point, []FoldInstruction, int, int) {
 				maxY = y
 			}
 
-			Points = append(Points, Point{X: x, Y: y})
+			Points = append(Points, utils.Point{X: x, Y: y})
 		} else if strings.HasPrefix(v, "fold along") {
 			s = strings.Split(v, "=")
 			l, _ := strconv.Atoi(s[1])
@@ -80,7 +80,7 @@ func CreateGrid(x, y int) grid {
 	return g
 }
 
-func PlotPoint(g grid, p Point) {
+func PlotPoint(g grid, p utils.Point) {
 	// all slices are pointer objects, so you don't need to pointer to them
 	g[p.Y][p.X] = 1
 }
@@ -164,8 +164,8 @@ func day2113Func(cmd *cobra.Command, args []string) {
 	points, folds, maxX, maxY := getCoordsAndFolds("data/2113.txt")
 
 	grid := CreateGrid(maxX, maxY)
-	for _, Point := range points {
-		PlotPoint(grid, Point)
+	for _, point := range points {
+		PlotPoint(grid, point)
 	}
 
 	for _, f := range folds {

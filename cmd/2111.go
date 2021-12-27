@@ -2,9 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
-	"strconv"
-	"strings"
 
 	"github.com/adamehirsch/AdventOfCode/utils"
 	"github.com/fatih/color"
@@ -22,37 +19,10 @@ func init() {
 	rootCmd.AddCommand(day2111Cmd)
 }
 
-func getOctoMap(f string) [][]int {
-	var dm [][]int
-
-	content, err := utils.Opener(f, true)
-	if err != nil {
-		log.Fatal(err)
-	}
-	// trim trailing newline
-
-	for _, v := range strings.Split(content, "\n") {
-		var row []int
-
-		for _, char := range strings.Split(v, "") {
-			f, _ := strconv.Atoi(char)
-			row = append(row, f)
-		}
-		dm = append(dm, row)
-	}
-	return dm
-
-}
-
-type Point struct {
-	X int
-	Y int
-}
-
 type OctoBoard struct {
 	board      [][]int
 	stepcount  int
-	flashed    []Point
+	flashed    []utils.Point
 	flashcount int
 }
 
@@ -78,53 +48,6 @@ func (ob OctoBoard) String() string {
 	return rv
 }
 
-func (ob *OctoBoard) Neighbors(x, y int) []Point {
-
-	// zero value for bool is false
-	var ym, xm, yp, xp bool
-
-	if y > 0 {
-		ym = true
-	}
-	if x > 0 {
-		xm = true
-	}
-	if y < len(ob.board)-1 {
-		yp = true
-	}
-	if x < len(ob.board[0])-1 {
-		xp = true
-	}
-	neighbors := []Point{}
-	if xm && ym {
-		neighbors = append(neighbors, Point{X: x - 1, Y: y - 1})
-	}
-	if ym {
-		neighbors = append(neighbors, Point{X: x, Y: y - 1})
-	}
-	if xp && ym {
-		neighbors = append(neighbors, Point{X: x + 1, Y: y - 1})
-	}
-	if xp {
-		neighbors = append(neighbors, Point{X: x + 1, Y: y})
-	}
-	if xp && yp {
-		neighbors = append(neighbors, Point{X: x + 1, Y: y + 1})
-	}
-	if yp {
-		neighbors = append(neighbors, Point{X: x, Y: y + 1})
-	}
-	if xm && yp {
-		neighbors = append(neighbors, Point{X: x - 1, Y: y + 1})
-	}
-	if xm {
-		neighbors = append(neighbors, Point{X: x - 1, Y: y})
-	}
-
-	return neighbors
-
-}
-
 func (ob *OctoBoard) PointValue(x, y int) *int {
 	return &ob.board[y][x]
 }
@@ -138,7 +61,7 @@ func (ob *OctoBoard) IncreaseEnergy() {
 }
 
 func (ob *OctoBoard) BumpNeighbors(x, y int) {
-	neighbors := ob.Neighbors(x, y)
+	neighbors := utils.Neighbors(ob.board, x, y, true)
 	for _, n := range neighbors {
 		ob.board[n.Y][n.X]++
 	}
@@ -149,7 +72,7 @@ func (ob *OctoBoard) ClearFlashes() {
 		ob.flashcount++
 		ob.board[p.Y][p.X] = 0
 	}
-	ob.flashed = []Point{}
+	ob.flashed = []utils.Point{}
 }
 
 func (ob *OctoBoard) Flash() bool {
@@ -158,12 +81,12 @@ func (ob *OctoBoard) Flash() bool {
 	for y := 0; y < len(ob.board); y++ {
 		for x := 0; x < len(ob.board[y]); x++ {
 			// any point greater than 9 that hasn't already flashed; flash
-			if ob.board[y][x] > 9 && !Contains(ob.flashed, Point{X: x, Y: y}) {
+			if ob.board[y][x] > 9 && !Contains(ob.flashed, utils.Point{X: x, Y: y}) {
 				// fmt.Printf("FLASHING: %d, %d\n", x, y)
 				flashed = true
 				// increase neighbors
 				ob.BumpNeighbors(x, y)
-				ob.flashed = append(ob.flashed, Point{X: x, Y: y})
+				ob.flashed = append(ob.flashed, utils.Point{X: x, Y: y})
 			}
 
 		}
@@ -182,7 +105,7 @@ func (ob *OctoBoard) Step() int {
 	return fc
 }
 
-func Contains(s []Point, p Point) bool {
+func Contains(s []utils.Point, p utils.Point) bool {
 	for _, item := range s {
 		if item.X == p.X && item.Y == p.Y {
 			return true
@@ -193,7 +116,7 @@ func Contains(s []Point, p Point) bool {
 
 func day2111Func(cmd *cobra.Command, args []string) {
 	OctoMap := OctoBoard{
-		board:     getOctoMap("data/2111.txt"),
+		board:     utils.GetGridMap("data/2111.txt"),
 		stepcount: 0,
 	}
 
@@ -203,7 +126,7 @@ func day2111Func(cmd *cobra.Command, args []string) {
 	fmt.Print("Part 1:\n", OctoMap)
 
 	OctoMap = OctoBoard{
-		board:     getOctoMap("data/2111.txt"),
+		board:     utils.GetGridMap("data/2111.txt"),
 		stepcount: 0,
 	}
 

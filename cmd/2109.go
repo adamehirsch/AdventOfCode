@@ -89,7 +89,7 @@ func getBasinMap(f string) depthMap {
 
 }
 
-func alreadyScanned(x, y int, ts *[]Point) bool {
+func alreadyScanned(x, y int, ts *[]utils.Point) bool {
 	// skip any already scanned points
 	for _, v := range *ts {
 		if v.X == x && v.Y == y {
@@ -99,7 +99,7 @@ func alreadyScanned(x, y int, ts *[]Point) bool {
 	return false
 }
 
-func (dm *depthMap) FloodFill(x, y int, tb *int, s *[]Point) (int, error) {
+func (dm *depthMap) FloodFill(x, y int, tb *int, s *[]utils.Point) (int, error) {
 
 	if y > len(dm.dm) || x > len(dm.dm[0]) || x < 0 || y < 0 {
 		return -1, errors.New("invalid coordinate specified")
@@ -110,7 +110,7 @@ func (dm *depthMap) FloodFill(x, y int, tb *int, s *[]Point) (int, error) {
 	}
 
 	// record that we've scanned this point already
-	*s = append(*s, Point{X: x, Y: y})
+	*s = append(*s, utils.Point{X: x, Y: y})
 
 	// the basins are bounded by 9-values
 	if dm.dm[y][x] == 9 {
@@ -146,7 +146,7 @@ func day2109Func(cmd *cobra.Command, args []string) {
 	}
 	fmt.Printf("Part 1: Risk Levels Total: %d\n", dm.riskLevels)
 
-	toScan := []Point{}
+	toScan := []utils.Point{}
 	basins := []int{}
 
 	for y := 0; y < len(dm.dm); y++ {

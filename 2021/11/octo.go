@@ -10,7 +10,7 @@ import (
 	"github.com/fatih/color"
 )
 
-func getMap(f string) [][]int {
+func GetGridMap(f string) [][]int {
 	var dm [][]int
 	content, err := os.ReadFile(f)
 	if err != nil {
@@ -71,7 +71,7 @@ func (ob OctoBoard) String() string {
 	return rv
 }
 
-func (ob *OctoBoard) Neighbors(x, y int) []Point {
+func Neighbors(b [][]int, x, y int) []Point {
 
 	// zero value for bool is false
 	var ym, xm, yp, xp bool
@@ -82,10 +82,10 @@ func (ob *OctoBoard) Neighbors(x, y int) []Point {
 	if x > 0 {
 		xm = true
 	}
-	if y < len(ob.board)-1 {
+	if y < len(b)-1 {
 		yp = true
 	}
-	if x < len(ob.board[0])-1 {
+	if x < len(b)-1 {
 		xp = true
 	}
 	neighbors := []Point{}
@@ -131,7 +131,7 @@ func (ob *OctoBoard) IncreaseEnergy() {
 }
 
 func (ob *OctoBoard) BumpNeighbors(x, y int) {
-	neighbors := ob.Neighbors(x, y)
+	neighbors := Neighbors(ob.board, x, y)
 	for _, n := range neighbors {
 		ob.board[n.Y][n.X]++
 	}
@@ -186,7 +186,7 @@ func Contains(s []Point, p Point) bool {
 
 func main() {
 	OctoMap := OctoBoard{
-		board:     getMap("input.txt"),
+		board:     GetGridMap("input.txt"),
 		stepcount: 0,
 	}
 

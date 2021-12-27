@@ -26,6 +26,11 @@ type Node struct {
 	isBig bool
 }
 
+// String returns a string reperesentation of the node
+func (n Node) String() string {
+	return fmt.Sprintf("%v", n.value)
+}
+
 // Graph is the structure that contains nodes and edges
 type Graph struct {
 	nodes []*Node
@@ -68,11 +73,6 @@ func (g *Graph) RemoveNode(el string) {
 	}
 }
 
-// String returns a string reperesentation of the node
-func (n Node) String() string {
-	return fmt.Sprintf("%v", n.value)
-}
-
 // String returns a string representation of the graph
 func (g Graph) String() string {
 	sb := strings.Builder{}
@@ -90,9 +90,9 @@ func (g Graph) String() string {
 }
 
 func NodesContains(s string, n []*Node) (*Node, bool, int) {
-	for i, no := range n {
-		if no.value == s {
-			return no, true, i
+	for i, node := range n {
+		if node.value == s {
+			return node, true, i
 		}
 	}
 	return nil, false, -1
