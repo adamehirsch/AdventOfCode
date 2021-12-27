@@ -15,10 +15,16 @@ import (
 
 // var red = color.New(color.FgRed).SprintFunc()
 
+var green = color.New(color.FgGreen, color.Bold).PrintfFunc()
+
 type Point struct {
 	X int
 	Y int
 }
+
+// func (p Point) String() string {
+// 	return fmt.Sprintf("{%d %d}", p.X, p.Y)
+// }
 
 type GridMap [][]int
 
@@ -35,6 +41,19 @@ func (gm GridMap) String() string {
 		sb += "\n"
 	}
 	return sb
+}
+
+func (gm *GridMap) PrintWinningPath(wp []Point) {
+	for y, row := range *gm {
+		for x := 0; x < len(row); x++ {
+			if ContainsPoint(wp, Point{X: x, Y: y}) {
+				green("%3d*", (*gm)[y][x])
+			} else {
+				fmt.Printf("%4d", (*gm)[y][x])
+			}
+		}
+		fmt.Print("\n")
+	}
 }
 
 func (gm *GridMap) PointValue(p Point) int {
