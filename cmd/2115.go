@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"math"
 	"sort"
-	"time"
 
 	"github.com/adamehirsch/AdventOfCode/utils"
 	"github.com/spf13/cobra"
@@ -79,7 +78,7 @@ func NumWrap(i, m int) int {
 	return z
 }
 
-func Dijkstra(m, costMap *utils.GridMap, bestMap *PathMap, finish utils.Point, seen *[]utils.Point, toCheck *[]utils.Point) {
+func Dijkstra(m, costMap *utils.GridMap, bestMap *PathMap, finish utils.Point, seen *map[utils.Point]bool, toCheck *[]utils.Point) {
 	// pull the working point off the toCheck list
 	workingPoint := (*toCheck)[0]
 
@@ -87,17 +86,16 @@ func Dijkstra(m, costMap *utils.GridMap, bestMap *PathMap, finish utils.Point, s
 	startPath := (*bestMap)[workingPoint.Y][workingPoint.X]
 
 	// Mark this origin point Seen
-	if !utils.ContainsPoint(*seen, workingPoint) {
-		*seen = append(*seen, workingPoint)
-	}
+	(*seen)[workingPoint] = true
 
 	// take the working point off the queue
 	*toCheck = (*toCheck)[1:]
 
 	for _, neighbor := range utils.FourNeighbors(*m, workingPoint.X, workingPoint.Y) {
 
-		if !utils.ContainsPoint(*seen, neighbor) {
+		// if !utils.ContainsPoint(*seen, neighbor) {
 
+		if _, found := (*seen)[neighbor]; !found {
 			if !utils.ContainsPoint(*toCheck, neighbor) {
 				// for any of the neighbors we haven't seen, let's check them
 				*toCheck = append(*toCheck, neighbor)
@@ -133,8 +131,12 @@ func day2115Func(cmd *cobra.Command, args []string) {
 
 	costMap := utils.MakeGridMap(Xmax, Ymax, math.MaxInt)
 
-	seenPoints := []utils.Point{}
-	toCheck := []utils.Point{{X: 0, Y: 0}}
+	// seenPoints := []utils.Point{}
+	seenMap := make(map[utils.Point]bool)
+
+	// toCheck := []utils.Point{{X: 0, Y: 0}}
+	toCheck := make([]utils.Point, 0, Xmax*Ymax)
+	toCheck = append(toCheck, utils.Point{X: 0, Y: 0})
 
 	// the cost of the starting point is 0
 	costMap[0][0] = 0
@@ -142,31 +144,27 @@ func day2115Func(cmd *cobra.Command, args []string) {
 	bestMap[0][0] = append(bestMap[0][0], utils.Point{X: 0, Y: 0})
 
 	for len(toCheck) > 0 {
-		Dijkstra(&caveMap, &costMap, &bestMap, utils.Point{X: len(caveMap[0]) - 1, Y: len(caveMap) - 1}, &seenPoints, &toCheck)
+		Dijkstra(&caveMap, &costMap, &bestMap, utils.Point{X: len(caveMap[0]) - 1, Y: len(caveMap) - 1}, &seenMap, &toCheck)
 
 	}
 
-	caveMap.PrintWinningPath(bestMap[Ymax][Xmax])
+	// caveMap.PrintWinningPath(bestMap[Ymax][Xmax])
 
 	fmt.Printf("Part 1: Total danger at destination: %d\n", costMap[Ymax][Xmax])
 
 	bigMap, bigCostMap, bigPathMap := FiveMap(caveMap)
 
-	bigPoints := []utils.Point{}
-	bigAgenda := []utils.Point{{X: 0, Y: 0}}
+	// bigPoints := []utils.Point{}
+	bigPoints := make(map[utils.Point]bool)
 
-	counter := 0
+	bigAgenda := make([]utils.Point, 0, Xmax*Ymax)
+	bigAgenda = append(toCheck, utils.Point{X: 0, Y: 0})
 
 	for len(bigAgenda) > 0 {
-		start := time.Now()
 		Dijkstra(&bigMap, &bigCostMap, &bigPathMap, utils.Point{X: len(bigMap[0]) - 1, Y: len(bigMap) - 1}, &bigPoints, &bigAgenda)
-		if math.Mod(float64(counter), float64(1000)) == 0 {
-			fmt.Println(counter, time.Since(start))
-		}
-		counter++
 	}
 
-	bigMap.PrintWinningPath(bigPathMap[len(bigMap[0])-1][len(bigMap)-1])
+	// bigMap.PrintWinningPath(bigPathMap[len(bigMap[0])-1][len(bigMap)-1])
 
 	fmt.Printf("Part 2: Total danger at destination: %d\n", bigCostMap[len(bigCostMap[0])-1][len(bigCostMap)-1])
 }
