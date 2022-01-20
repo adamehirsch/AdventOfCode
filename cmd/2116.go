@@ -2,8 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"regexp"
 	"strconv"
 
+	"github.com/adamehirsch/AdventOfCode/utils"
+	"github.com/kr/pretty"
 	"github.com/spf13/cobra"
 )
 
@@ -13,6 +17,8 @@ var day2116Cmd = &cobra.Command{
 	DisableFlagsInUseLine: true,
 	Run:                   day2116Func,
 }
+
+var nonZero, _ = regexp.Compile("[^0]")
 
 func init() {
 	rootCmd.AddCommand(day2116Cmd)
@@ -38,16 +44,19 @@ var hexMap = map[string]string{
 }
 
 type Packet struct {
-	version          int
-	typeId           int
-	packetType       int
-	value            int
-	remainingPayload string
-	subpackets       []Packet
+	version    int
+	typeId     int
+	packetType int
+	value      int
+	subpackets []Packet
 }
 
 func (p Packet) String() string {
-	return fmt.Sprintf("{ version: %d, typeId: %d, packetType: %d, value: %d, subpackets: %v }\n", p.version, p.typeId, p.packetType, p.value, p.subpackets)
+	packetType := "literal"
+	if p.packetType != 4 {
+		packetType = "operator"
+	}
+	return fmt.Sprintf("{ version: %d, typeId: %d, packetType: %s, value: %d, subpackets: %# v }", p.version, p.typeId, packetType, p.value, pretty.Formatter(p.subpackets))
 }
 
 func HexToBin(hex string) string {
@@ -66,12 +75,11 @@ func BinToDec(bin string) int {
 	return int(i)
 }
 
-func createNewPacketFromBinaryPayload(binaryPayload string) (Packet, string) {
+func MakePacket(payload string) (Packet, string) {
 	return Packet{
-		version:          BinToDec(binaryPayload[0:3]),
-		packetType:       BinToDec(binaryPayload[3:6]),
-		remainingPayload: binaryPayload[6:],
-	}, binaryPayload[6:]
+		version:    BinToDec(payload[0:3]),
+		packetType: BinToDec(payload[3:6]),
+	}, payload[6:]
 }
 
 // func ParsePacket(input string) (Packet, string) {
@@ -85,6 +93,7 @@ func parseLiteralPacket(packet Packet, payload string) (Packet, string) {
 	for keepGoing {
 		binString += payload[1:5]
 		keepGoing = payload[0:1] == "1"
+		// trim off the 5 bits we used, leave the rest
 		payload = payload[5:]
 	}
 	p := Packet{
@@ -97,35 +106,38 @@ func parseLiteralPacket(packet Packet, payload string) (Packet, string) {
 }
 
 func parseOperatorPacket(packet Packet, payload string) (Packet, string) {
-	operatorBitLength := 1
-	lengthTypeId := BinToDec(payload[0:operatorBitLength])
+
+	lengthTypeId := BinToDec(payload[0:1])
 	length, remainingPayload := getPacketLength(lengthTypeId, payload[1:])
+
 	subPackets, rp := readSubPackets(remainingPayload, lengthTypeId, length)
 	packet.subpackets = append(packet.subpackets, subPackets...)
-
 	return packet, rp
 }
 
 func readSubPackets(payload string, lengthTypeId, length int) ([]Packet, string) {
-
 	newPackets := []Packet{}
 
 	if lengthTypeId == 0 {
 		// length type is 0; length is length in bits of all subpackets
-		packetPayload := payload[0:length]
-		for len(packetPayload) > 0 && BinToDec(packetPayload) > 0 {
-			newPacket, remainder := createNewPacketFromBinaryPayload(packetPayload)
-			parsedPacket, rp := parsePacket(newPacket, remainder)
-			packetPayload = rp
-			newPackets = append(newPackets, parsedPacket)
-		}
-	} else {
-		//length type 11; length is number of sub packets
-		for i := 0; i < length; i++ {
-			newPacket, remainder := createNewPacketFromBinaryPayload(payload)
+		trimmedOff := payload[length:]
+		payload = payload[0:length]
+		for len(payload) > 0 && nonZero.MatchString(payload) {
+			newPacket, remainder := MakePacket(payload)
 			parsedPacket, rp := parsePacket(newPacket, remainder)
 			payload = rp
 			newPackets = append(newPackets, parsedPacket)
+		}
+		// put the the bits not used in the above back on
+		payload = payload + trimmedOff
+	} else {
+		//length type 1; length is number of sub packets
+		for i := 0; i < length && nonZero.MatchString(payload); i++ {
+			newPacket, remainder := MakePacket(payload)
+			parsedPacket, rp := parsePacket(newPacket, remainder)
+			payload = rp
+			newPackets = append(newPackets, parsedPacket)
+
 		}
 	}
 	return newPackets, payload
@@ -143,23 +155,33 @@ func parsePacket(packet Packet, payload string) (Packet, string) {
 	if packet.packetType == 4 {
 		return parseLiteralPacket(packet, payload)
 	}
+
 	return parseOperatorPacket(packet, payload)
 }
 
 func decodeOuterPacket(binaryPacket string) (Packet, string) {
-	outermostPacket, remainingPayload := createNewPacketFromBinaryPayload(binaryPacket)
+	outermostPacket, remainingPayload := MakePacket(binaryPacket)
 	return parsePacket(outermostPacket, remainingPayload)
 }
 
-func day2116Func(cmd *cobra.Command, args []string) {
-	// hexPackets, err := utils.Opener("data/2116-sample.txt", true)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	os.Exit(1)
-	// }
-	// binaryPackets := HexToBin(hexPackets)
-	binaryPackets := HexToBin("EE00D40C823060")
+func SumVersions(p Packet) int {
+	s := p.version
+	for _, v := range p.subpackets {
+		s += SumVersions(v)
+	}
+	return s
+}
 
-	decodedPackets, length := decodeOuterPacket(binaryPackets)
-	fmt.Println(decodedPackets, length)
+func day2116Func(cmd *cobra.Command, args []string) {
+	hexPackets, err := utils.Opener("data/2116.txt", true)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	binaryPackets := HexToBin(hexPackets)
+	finalPacket, leftover := decodeOuterPacket(binaryPackets)
+
+	// fmt.Println(finalPacket, "Leftover:", leftover)
+	fmt.Println("Version summary:", SumVersions(finalPacket), leftover)
+
 }
