@@ -156,7 +156,66 @@ func parsePacket(packet Packet, payload string) (Packet, string) {
 		return parseLiteralPacket(packet, payload)
 	}
 
-	return parseOperatorPacket(packet, payload)
+	op, payload := parseOperatorPacket(packet, payload)
+	op.value = DoPacketMath(op)
+	return op, payload
+}
+
+func DoPacketMath(op Packet) int {
+	if op.subpackets == nil || len(op.subpackets) == 0 {
+		return 0
+	}
+	value := op.subpackets[0].value
+	switch op.packetType {
+	case 0:
+		// "sum"
+		for _, p := range op.subpackets[1:] {
+			value += p.value
+		}
+	case 1:
+		// "product"
+		if len(op.subpackets) > 1 {
+			for _, sp := range op.subpackets[1:] {
+				value = value * sp.value
+			}
+		}
+	case 2:
+		// "minimum"
+		for _, sp := range op.subpackets[1:] {
+			if sp.value < value {
+				value = sp.value
+			}
+		}
+	case 3:
+		// maximum
+		for _, sp := range op.subpackets[1:] {
+			if sp.value > value {
+				value = sp.value
+			}
+		}
+	case 5:
+		// greater than
+		if value > op.subpackets[1].value {
+			value = 1
+		} else {
+			value = 0
+		}
+	case 6:
+		// less than
+		if value < op.subpackets[1].value {
+			value = 1
+		} else {
+			value = 0
+		}
+	case 7:
+		// equals
+		if value == op.subpackets[1].value {
+			value = 1
+		} else {
+			value = 0
+		}
+	}
+	return value
 }
 
 func decodeOuterPacket(binaryPacket string) (Packet, string) {
@@ -179,9 +238,11 @@ func day2116Func(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	binaryPackets := HexToBin(hexPackets)
+	// binaryPackets := HexToBin("C200B40A82")
 	finalPacket, leftover := decodeOuterPacket(binaryPackets)
 
-	// fmt.Println(finalPacket, "Leftover:", leftover)
-	fmt.Println("Version summary:", SumVersions(finalPacket), leftover)
+	fmt.Println(finalPacket, "Leftover:", leftover)
+	fmt.Println("Version summary:", SumVersions(finalPacket))
+	fmt.Println("Outer Packet Total:", finalPacket.value)
 
 }
