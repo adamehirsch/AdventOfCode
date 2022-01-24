@@ -82,12 +82,8 @@ func MakePacket(payload string) (Packet, string) {
 	}, payload[6:]
 }
 
-// func ParsePacket(input string) (Packet, string) {
-// 	newPacket, remainingPayload := createNewPacketFromBinaryPayload(input)
-
-// }
-
 func parseLiteralPacket(packet Packet, payload string) (Packet, string) {
+	// a Packet with only numbers in it, thus a concrete value
 	binString := ""
 	keepGoing := true
 	for keepGoing {
@@ -106,7 +102,7 @@ func parseLiteralPacket(packet Packet, payload string) (Packet, string) {
 }
 
 func parseOperatorPacket(packet Packet, payload string) (Packet, string) {
-
+	// a Packet that indicates an operation to conduct on the numbers in its payload
 	lengthTypeId := BinToDec(payload[0:1])
 	length, remainingPayload := getPacketLength(lengthTypeId, payload[1:])
 
@@ -116,8 +112,8 @@ func parseOperatorPacket(packet Packet, payload string) (Packet, string) {
 }
 
 func readSubPackets(payload string, lengthTypeId, length int) ([]Packet, string) {
-	newPackets := []Packet{}
 
+	newPackets := []Packet{}
 	if lengthTypeId == 0 {
 		// length type is 0; length is length in bits of all subpackets
 		trimmedOff := payload[length:]
@@ -128,7 +124,7 @@ func readSubPackets(payload string, lengthTypeId, length int) ([]Packet, string)
 			payload = rp
 			newPackets = append(newPackets, parsedPacket)
 		}
-		// put the the bits not used in the above back on
+		// put the the bits not used in this packet back onto the returned, unused payload
 		payload = payload + trimmedOff
 	} else {
 		//length type 1; length is number of sub packets
@@ -137,7 +133,6 @@ func readSubPackets(payload string, lengthTypeId, length int) ([]Packet, string)
 			parsedPacket, rp := parsePacket(newPacket, remainder)
 			payload = rp
 			newPackets = append(newPackets, parsedPacket)
-
 		}
 	}
 	return newPackets, payload
@@ -238,7 +233,6 @@ func day2116Func(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 	binaryPackets := HexToBin(hexPackets)
-	// binaryPackets := HexToBin("C200B40A82")
 	finalPacket, leftover := decodeOuterPacket(binaryPackets)
 
 	fmt.Println(finalPacket, "Leftover:", leftover)
