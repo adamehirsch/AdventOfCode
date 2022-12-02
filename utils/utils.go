@@ -232,3 +232,38 @@ func GetGridMap(f string) GridMap {
 	return dm
 
 }
+
+var hexMap = map[string]string{
+	"0": "0000",
+	"1": "0001",
+	"2": "0010",
+	"3": "0011",
+	"4": "0100",
+	"5": "0101",
+	"6": "0110",
+	"7": "0111",
+	"8": "1000",
+	"9": "1001",
+	"A": "1010",
+	"B": "1011",
+	"C": "1100",
+	"D": "1101",
+	"E": "1110",
+	"F": "1111",
+}
+
+func HexToBin(hex string) string {
+	bin := ""
+	for _, v := range hex {
+		bin += hexMap[string(v)]
+	}
+	return bin
+}
+
+func BinToDec(bin string) int {
+	i, err := strconv.ParseInt(bin, 2, 64)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return int(i)
+}

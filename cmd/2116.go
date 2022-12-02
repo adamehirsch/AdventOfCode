@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"os"
 	"regexp"
-	"strconv"
 
 	"github.com/adamehirsch/AdventOfCode/utils"
 	"github.com/kr/pretty"
@@ -24,25 +23,6 @@ func init() {
 	rootCmd.AddCommand(day2116Cmd)
 }
 
-var hexMap = map[string]string{
-	"0": "0000",
-	"1": "0001",
-	"2": "0010",
-	"3": "0011",
-	"4": "0100",
-	"5": "0101",
-	"6": "0110",
-	"7": "0111",
-	"8": "1000",
-	"9": "1001",
-	"A": "1010",
-	"B": "1011",
-	"C": "1100",
-	"D": "1101",
-	"E": "1110",
-	"F": "1111",
-}
-
 type Packet struct {
 	version    int
 	typeId     int
@@ -59,26 +39,10 @@ func (p Packet) String() string {
 	return fmt.Sprintf("{ version: %d, typeId: %d, packetType: %s, value: %d, subpackets: %# v }", p.version, p.typeId, packetType, p.value, pretty.Formatter(p.subpackets))
 }
 
-func HexToBin(hex string) string {
-	bin := ""
-	for _, v := range hex {
-		bin += hexMap[string(v)]
-	}
-	return bin
-}
-
-func BinToDec(bin string) int {
-	i, err := strconv.ParseInt(bin, 2, 64)
-	if err != nil {
-		fmt.Println(err)
-	}
-	return int(i)
-}
-
 func MakePacket(payload string) (Packet, string) {
 	return Packet{
-		version:    BinToDec(payload[0:3]),
-		packetType: BinToDec(payload[3:6]),
+		version:    utils.BinToDec(payload[0:3]),
+		packetType: utils.BinToDec(payload[3:6]),
 	}, payload[6:]
 }
 
@@ -96,14 +60,14 @@ func parseLiteralPacket(packet Packet, payload string) (Packet, string) {
 		version:    packet.version,
 		typeId:     packet.typeId,
 		packetType: packet.packetType,
-		value:      BinToDec(binString),
+		value:      utils.BinToDec(binString),
 	}
 	return p, payload
 }
 
 func parseOperatorPacket(packet Packet, payload string) (Packet, string) {
 	// a Packet that indicates an operation to conduct on the numbers in its payload
-	lengthTypeId := BinToDec(payload[0:1])
+	lengthTypeId := utils.BinToDec(payload[0:1])
 	length, remainingPayload := getPacketLength(lengthTypeId, payload[1:])
 
 	subPackets, rp := readSubPackets(remainingPayload, lengthTypeId, length)
@@ -140,9 +104,9 @@ func readSubPackets(payload string, lengthTypeId, length int) ([]Packet, string)
 
 func getPacketLength(lengthTypeId int, payload string) (int, string) {
 	if lengthTypeId == 0 {
-		return BinToDec(payload[0:15]), payload[15:]
+		return utils.BinToDec(payload[0:15]), payload[15:]
 	} else {
-		return BinToDec(payload[0:11]), payload[11:]
+		return utils.BinToDec(payload[0:11]), payload[11:]
 	}
 }
 
@@ -232,8 +196,8 @@ func day2116Func(cmd *cobra.Command, args []string) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
-	binaryPackets := HexToBin(hexPackets)
-	finalPacket, leftover := decodeOuterPacket(binaryPackets)
+	binaryString := utils.HexToBin(hexPackets)
+	finalPacket, leftover := decodeOuterPacket(binaryString)
 
 	fmt.Println(finalPacket, "Leftover:", leftover)
 	fmt.Println("Version summary:", SumVersions(finalPacket))
