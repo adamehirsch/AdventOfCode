@@ -28,30 +28,25 @@ func day2201Func(cmd *cobra.Command, args []string) {
 		os.Exit(1)
 	}
 
-	currentElf := 0
-	elves := make(map[int]int)
+	calorieInventory := make(map[int]int)
+	elfNames := []int{0}
 
 	for scanner.Scan() {
 		line := scanner.Text()
 		if line == "" {
-			currentElf++
+			// New elf, new elf "name"
+			elfNames = append(elfNames, elfNames[len(elfNames)-1]+1)
 		} else {
 			cals, _ := strconv.Atoi(line)
-			elves[currentElf] += cals
+			calorieInventory[elfNames[len(elfNames)-1]] += cals
 		}
 	}
 
-	// sorting requires a slice, but there's gotta be a smarter implementation
-	elfNumbers := make([]int, len(elves)+1)
-	for i := range elfNumbers {
-		elfNumbers[i] = i
-	}
-
-	sort.Slice(elfNumbers, func(i, j int) bool {
-		return elves[elfNumbers[i]] > elves[elfNumbers[j]]
+	sort.Slice(elfNames, func(i, j int) bool {
+		return calorieInventory[elfNames[i]] > calorieInventory[elfNames[j]]
 	})
 
-	fmt.Printf("Maximum Single Elf Calories: %d\n", elves[elfNumbers[0]])
-	fmt.Printf("Top Three Elves Calories: %d\n", elves[elfNumbers[0]]+elves[elfNumbers[1]]+elves[elfNumbers[2]])
+	fmt.Printf("Maximum Single Elf Calories: %d\n", calorieInventory[elfNames[0]])
+	fmt.Printf("Top Three Elves Calories: %d\n", calorieInventory[elfNames[0]]+calorieInventory[elfNames[1]]+calorieInventory[elfNames[2]])
 
 }
