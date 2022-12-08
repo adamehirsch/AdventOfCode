@@ -28,35 +28,42 @@ func init() {
 
 func findSplitLetters(s string) string {
 	l := strings.Split(s, "")
-	firstHalf := l[:len(l)/2]
-	secondHalf := l[len(l)/2:]
+	firstHalf := strings.Join(l[:len(l)/2], "")
+	secondHalf := strings.Join(l[len(l)/2:], "")
 
+	if findCommonLetter(firstHalf, secondHalf) != "" {
+		return (findCommonLetter(firstHalf, secondHalf))
+	}
 	return ""
 }
 
 func findCommonLetter(s ...string) string {
-	seen := make(map[rune]int)
+	seen := make(map[string]int)
 
 	first := s[0]
 
 	// for every letter in "first"
-	for _, r := range first {
+	for _, firstLetter := range first {
+		if seen[string(firstLetter)] == 0 {
+			seen[string(firstLetter)] = 1
+		} else {
+			continue
+		}
 		// loop over each of the remaining sent strings
-		for _, c := range s[1:] {
+		for _, otherSet := range s[1:] {
 			// for every letter in each string
-			if strings.Contains(c, string(r)) {
-				seen[r]++
+			if strings.Contains(otherSet, string(firstLetter)) {
+				seen[string(firstLetter)] += 1
 			}
 		}
 	}
-
-	for k, v := range seen {
-		// if any letter has been seen as many times as
-		if v >= len(s) {
-
+	for letter, howMany := range seen {
+		// if any letter has been seen as many times as the sets handed in
+		if howMany >= len(s) {
+			return (string(letter))
 		}
 	}
-
+	return ""
 }
 
 func letterValue(s string) int {
@@ -77,6 +84,21 @@ func day2203Func(cmd *cobra.Command, args []string) {
 	for _, line := range lines {
 		total += letterValue(findSplitLetters(line))
 	}
-	fmt.Printf("Total: %d\n", total)
 
+	fmt.Printf("Phase 1: Total: %d\n", total)
+
+	// Create a slice to hold groups of three lines.
+	groups := make([][]string, 0)
+
+	// Loop over the lines and append groups of three to the groups slice.
+	for i := 0; i < len(lines); i += 3 {
+		group := lines[i : i+3]
+		groups = append(groups, group)
+	}
+
+	secondTotal := 0
+	for _, g := range groups {
+		secondTotal += letterValue(findCommonLetter(g...))
+	}
+	fmt.Printf("Phase 2 total: %d\n", secondTotal)
 }
