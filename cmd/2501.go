@@ -19,27 +19,36 @@ func init() {
 	rootCmd.AddCommand(day2501Cmd)
 }
 
-func turnDial(d string, currentPosition *int) bool {
+func turnDial(d string, currentPosition *int) int {
 	// d will be in format "Lxx" or "Rxx"
 	// dial is a circular dial from 0 to 99
 	// interpret the string and return the new position
 	if d[0] != 'L' && d[0] != 'R' {
-		return false
+		return 0
 	}
 	var move int
 	_, err := fmt.Sscanf(d[1:], "%d", &move)
 	if err != nil {
-		return false
+		return 0
 	}
+	howManyZeroes := 0
+	// handle moves over 100
+	for ; move > 100; move -= 100 {
+		howManyZeroes++
+	}
+
 	if d[0] == 'L' {
+		if *currentPosition-move <= 0 && move != 0 && *currentPosition != 0 {
+			howManyZeroes++
+		}
 		*currentPosition = (*currentPosition - move + 100) % 100
 	} else {
+		if *currentPosition+move >= 100 && move != 0 && *currentPosition != 0 {
+			howManyZeroes++
+		}
 		*currentPosition = (*currentPosition + move) % 100
 	}
-	if *currentPosition == 0 {
-		return true
-	}
-	return false
+	return howManyZeroes
 }
 
 func day2501Func(cmd *cobra.Command, args []string) {
@@ -53,10 +62,8 @@ func day2501Func(cmd *cobra.Command, args []string) {
 	howManyZeroes := 0
 
 	for _, v := range strings.Split(file, "\n") {
-		if turnDial(v, &dialPosition) {
-			howManyZeroes++
-		}
+		howManyZeroes += turnDial(v, &dialPosition)
 	}
 
-	fmt.Printf("The dial landed on 0 a total of %d times\n", howManyZeroes)
+	fmt.Printf("The dial ticked on 0 a total of %d times\n", howManyZeroes)
 }
