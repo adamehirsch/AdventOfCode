@@ -20,13 +20,34 @@ func init() {
 	rootCmd.AddCommand(day2502Cmd)
 }
 
-func isNumberRepeated(number int) bool {
+func isNumberRepeated01(number int) bool {
 	numberLength := len(fmt.Sprintf("%d", number))
 	if numberLength%2 == 0 {
 		return strconv.Itoa(number)[:numberLength/2] == strconv.Itoa(number)[numberLength/2:]
 	}
 	return false
 
+}
+
+func isNumberRepeated02(number int) bool {
+	wholeStr := strconv.Itoa(number)
+	numberLength := len(wholeStr)
+
+	for subLen := 1; subLen < numberLength; subLen++ {
+		// is the whole string evenly divisible by subLen?
+		if numberLength%subLen != 0 {
+			continue
+		}
+		part := wholeStr[:subLen]
+		if isOnlySubstring(wholeStr, part) {
+			return true
+		}
+	}
+	return false
+}
+
+func isOnlySubstring(whole, part string) bool {
+	return float64(strings.Count(whole, part)) == float64(len(whole))/float64(len(part))
 }
 
 func day2502Func(cmd *cobra.Command, args []string) {
@@ -51,8 +72,8 @@ func day2502Func(cmd *cobra.Command, args []string) {
 		}
 		count := 0
 		for i := lowerBound; i <= upperBound; i++ {
-			if isNumberRepeated(i) {
-				fmt.Printf("   Number %d has repeated halves\n", i)
+			if isNumberRepeated02(i) {
+				fmt.Printf("   Number %d is made of repeated segments\n", i)
 				count++
 				totalCount += i
 			}
