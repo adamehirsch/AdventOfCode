@@ -212,6 +212,21 @@ func Opener(f string, isData bool) (string, error) {
 	return strings.TrimSuffix(string(file), "\n"), nil
 }
 
+func OpenerToLines(f string, isData bool) ([]string, error) {
+
+	if isData {
+		pwd, _ := os.Getwd()
+		f = filepath.Join(pwd, f)
+	}
+
+	file, err := os.ReadFile(f)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+	return strings.Split(strings.TrimSuffix(string(file), "\n"), "\n"), nil
+}
+
 func FileScanner(f string, isData bool) (*bufio.Scanner, error) {
 
 	if isData {
