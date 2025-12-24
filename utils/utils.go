@@ -265,6 +265,24 @@ func GetGridMap(f string) GridMap {
 
 }
 
+type ByteGrid [][]byte
+
+func GetGridBytes(f string) ByteGrid {
+	lines, err := OpenerToLines(f, true)
+	if err != nil {
+		log.Fatal(err)
+	}
+	grid := make([][]byte, len(lines))
+	for i, line := range lines {
+		grid[i] = []byte(line)
+	}
+	return grid
+}
+
+func (bg ByteGrid) At(x, y int) byte {
+	return bg[y][x]
+}
+
 var hexMap = map[string]string{
 	"0": "0000",
 	"1": "0001",
